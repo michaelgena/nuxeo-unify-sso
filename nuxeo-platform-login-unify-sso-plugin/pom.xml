@@ -1,0 +1,41 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.nuxeo.ecm.platform.ui.web.auth.portal</groupId>
+    <artifactId>nuxeo-platform-login-unify-sso</artifactId>
+    <version>7.4-SNAPSHOT</version>
+  </parent>
+  <groupId>org.nuxeo.ecm.platform.ui.web.auth.portal</groupId>
+  <artifactId>nuxeo-platform-login-unify-sso-plugin</artifactId>
+  <version>7.4-SNAPSHOT</version>
+  <name>Nuxeo Unify SSO GAPortal authentication plugin for LoginModule</name>
+  <description>Nuxeo Enterprise Platform: Login module
+    using sso parameters to validate authentication of requests coming from GAPortal.</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-login</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-ui-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.servlet.jsp</groupId>
+      <artifactId>jsp-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+    </dependency>
+  </dependencies>
+</project>
