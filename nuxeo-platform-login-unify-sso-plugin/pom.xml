@@ -3,11 +3,11 @@
   <parent>
     <groupId>org.nuxeo.ecm.platform.ui.web.auth.portal</groupId>
     <artifactId>nuxeo-platform-login-unify-sso</artifactId>
-    <version>7.4-SNAPSHOT</version>
+    <version>7.10-SNAPSHOT</version>
   </parent>
   <groupId>org.nuxeo.ecm.platform.ui.web.auth.portal</groupId>
   <artifactId>nuxeo-platform-login-unify-sso-plugin</artifactId>
-  <version>7.4-SNAPSHOT</version>
+  <version>7.10-SNAPSHOT</version>
   <name>Nuxeo Unify SSO GAPortal authentication plugin for LoginModule</name>
   <description>Nuxeo Enterprise Platform: Login module
     using sso parameters to validate authentication of requests coming from GAPortal.</description>

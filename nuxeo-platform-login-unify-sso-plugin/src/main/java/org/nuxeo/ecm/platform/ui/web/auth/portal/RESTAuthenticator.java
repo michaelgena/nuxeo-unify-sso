@@ -15,29 +15,23 @@
 
 package org.nuxeo.ecm.platform.ui.web.auth.portal;
 import java.io.IOException;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.nuxeo.common.utils.URIUtils;
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.platform.api.login.UserIdentificationInfo;
 import org.nuxeo.ecm.platform.ui.web.auth.interfaces.NuxeoAuthenticationPlugin;
-import org.nuxeo.ecm.platform.usermanager.UserManager;
-import org.nuxeo.runtime.api.Framework;
 
-public class GAPortalAuthenticator implements NuxeoAuthenticationPlugin {
+public class RESTAuthenticator implements NuxeoAuthenticationPlugin {
 	
-	private Log logger = LogFactory.getLog(GAPortalAuthenticator.class);
+	private Log logger = LogFactory.getLog(RESTAuthenticator.class);
 	
 	private static final String URL_NAME = "url";
 	
@@ -52,10 +46,10 @@ public class GAPortalAuthenticator implements NuxeoAuthenticationPlugin {
     }
 
     public Boolean handleLoginPrompt(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String baseURL) {
-    	logger.info("baseURL: "+ baseURL);
-    	logger.info("url: "+ url);
-    	logger.info("RequestURI:"+httpRequest.getRequestURI());
-    	logger.info("requestedUrl: "+ httpRequest.getRequestURL().toString());
+    	logger.info("REST baseURL: "+ baseURL);
+    	logger.info("REST url: "+ url);
+    	logger.info("REST RequestURI:"+httpRequest.getRequestURI());
+    	logger.info("REST requestedUrl: "+ httpRequest.getRequestURL().toString());
     	Map<String, String> params = new HashMap<>();
     	if(!nuxeoUrl.endsWith("/")){
     		nuxeoUrl = nuxeoUrl + "/";
@@ -65,11 +59,6 @@ public class GAPortalAuthenticator implements NuxeoAuthenticationPlugin {
     	if(!httpRequest.getRequestURI().equals("/nuxeo/nxstartup.faces")){
     		requestedUrl = "?requestedUrl=";
     		requestedUrl += httpRequest.getRequestURI().replaceFirst("/nuxeo/", "");
-    		/*try {
-				requestedUrl = URLEncoder.encode(requestedUrl, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				logger.error("Error while encoding requestedUrl " + requestedUrl, e);
-			}*/
     	}
     	
     	params.put("URL", nuxeoUrl+"nxstartup.faces"+requestedUrl);
@@ -88,22 +77,13 @@ public class GAPortalAuthenticator implements NuxeoAuthenticationPlugin {
     	String userName = null;
     	if(httpRequest.getParameterValues("mail") != null && httpRequest.getParameterValues("mail").length>0){
     		mail = httpRequest.getParameterValues("mail")[0];
+    		String login = httpRequest.getParameterValues("tcGid")[0];
+    		javax.servlet.http.Cookie cookie = new Cookie("login", login);
+    		cookie.setDomain("localhost");
+    		cookie.setMaxAge(30*60);
+    		httpResponse.addCookie(cookie);
+    		userName = "rest_client";
     	}
- 
-	    logger.info("mail: "+mail);
-    	if(mail != null){
-	        UserManager userManager=Framework.getService(UserManager.class);
-	        Map<String, Serializable> map = new HashMap();
-	        map.put("email", mail);
-	        DocumentModelList userList = userManager.searchUsers(map, null);
-	        if(userList != null && userList.size() > 0){
-	        	DocumentModel user = userList.get(0);
-	        	userName = (String) user.getPropertyValue("username");
-	        }
-    	}
-    	logger.info("userName: "+userName);
-       
- 
         if (userName != null) {
         	httpRequest.getSession().setAttribute("userName", userName);
             return new UserIdentificationInfo(userName, userName);

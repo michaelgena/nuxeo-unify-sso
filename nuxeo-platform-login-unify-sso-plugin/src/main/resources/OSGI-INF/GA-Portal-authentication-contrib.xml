@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <component name="org.nuxeo.ecm.platform.login.unify.sso">
-
+  <require>org.nuxeo.ecm.platform.ui.web.auth.defaultConfig</require>
    <extension
       target="org.nuxeo.ecm.platform.ui.web.auth.service.PluggableAuthenticationService"
       point="authenticators">
@@ -9,6 +9,21 @@
               name="GA_PORTAL_AUTH"
               enabled="true"
               class="org.nuxeo.ecm.platform.ui.web.auth.portal.GAPortalAuthenticator">
+       <loginModulePlugin>Trusting_LM</loginModulePlugin>
+       <parameters>
+       	 <parameter name="url">https://app-enterprise.unify.com/GAPortal/SimpleSSO</parameter>
+       	 <parameter name="nuxeo_url">http://localhost:8080/nuxeo</parameter>
+       </parameters>
+      </authenticationPlugin>
+  </extension>
+  
+  <extension
+      target="org.nuxeo.ecm.platform.ui.web.auth.service.PluggableAuthenticationService"
+      point="authenticators">
+      <authenticationPlugin
+              name="GA_REST_AUTH"
+              enabled="true"
+              class="org.nuxeo.ecm.platform.ui.web.auth.portal.RESTAuthenticator">
        <loginModulePlugin>Trusting_LM</loginModulePlugin>
        <parameters>
        	 <parameter name="url">https://app-enterprise.unify.com/GAPortal/SimpleSSO</parameter>
@@ -29,5 +44,17 @@
         <plugin>FORM_AUTH</plugin>
       </plugins>
     </authenticationChain>
+  </extension>
+  
+  <extension point="specificChains" target="org.nuxeo.ecm.platform.ui.web.auth.service.PluggableAuthenticationService">
+    <specificAuthenticationChain name="RestAPI">
+        <urlPatterns>
+          <url>(.*)/api/v1/.*</url>
+          <url>(.*)/front/.*</url>
+        </urlPatterns>
+        <replacementChain>
+             <plugin>GA_REST_AUTH</plugin>
+        </replacementChain>
+    </specificAuthenticationChain>
   </extension>
 </component>
