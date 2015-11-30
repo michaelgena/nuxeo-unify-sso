@@ -75,16 +75,21 @@ public class RESTAuthenticator implements NuxeoAuthenticationPlugin {
             HttpServletResponse httpResponse) {
     	String mail = null;
     	String userName = null;
+    	logger.info("handleRetrieveIdentity");
     	if(httpRequest.getParameterValues("mail") != null && httpRequest.getParameterValues("mail").length>0){
     		mail = httpRequest.getParameterValues("mail")[0];
     		String login = httpRequest.getParameterValues("tcGid")[0];
-    		javax.servlet.http.Cookie cookie = new Cookie("login", login);
-    		cookie.setDomain("localhost");
+    		javax.servlet.http.Cookie cookie = new Cookie("login", login);   		
+    		cookie.setPath("/");
     		cookie.setMaxAge(30*60);
+    		cookie.setSecure(false);
     		httpResponse.addCookie(cookie);
     		userName = "rest_client";
     	}
+    	logger.info("userName: "+userName);
+        
         if (userName != null) {
+        	logger.info("user "+ userName);
         	httpRequest.getSession().setAttribute("userName", userName);
             return new UserIdentificationInfo(userName, userName);
         } else {

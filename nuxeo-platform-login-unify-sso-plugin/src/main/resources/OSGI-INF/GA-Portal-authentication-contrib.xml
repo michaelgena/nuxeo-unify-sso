@@ -16,21 +16,6 @@
        </parameters>
       </authenticationPlugin>
   </extension>
-  
-  <extension
-      target="org.nuxeo.ecm.platform.ui.web.auth.service.PluggableAuthenticationService"
-      point="authenticators">
-      <authenticationPlugin
-              name="GA_REST_AUTH"
-              enabled="true"
-              class="org.nuxeo.ecm.platform.ui.web.auth.portal.RESTAuthenticator">
-       <loginModulePlugin>Trusting_LM</loginModulePlugin>
-       <parameters>
-       	 <parameter name="url">https://app-enterprise.unify.com/GAPortal/SimpleSSO</parameter>
-       	 <parameter name="nuxeo_url">http://localhost:8080/nuxeo</parameter>
-       </parameters>
-      </authenticationPlugin>
-  </extension>
 
    <!-- Include GAPortal Auth into authentication chain -->
     <extension
@@ -44,17 +29,5 @@
         <plugin>FORM_AUTH</plugin>
       </plugins>
     </authenticationChain>
-  </extension>
-  
-  <extension point="specificChains" target="org.nuxeo.ecm.platform.ui.web.auth.service.PluggableAuthenticationService">
-    <specificAuthenticationChain name="RestAPI">
-        <urlPatterns>
-          <url>(.*)/api/v1/.*</url>
-          <url>(.*)/front/.*</url>
-        </urlPatterns>
-        <replacementChain>
-             <plugin>GA_REST_AUTH</plugin>
-        </replacementChain>
-    </specificAuthenticationChain>
   </extension>
 </component>

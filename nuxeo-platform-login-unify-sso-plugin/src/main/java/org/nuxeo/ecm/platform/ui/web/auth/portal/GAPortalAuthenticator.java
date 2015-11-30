@@ -16,12 +16,14 @@
 package org.nuxeo.ecm.platform.ui.web.auth.portal;
 import java.io.IOException;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -42,6 +44,8 @@ public class GAPortalAuthenticator implements NuxeoAuthenticationPlugin {
 	private static final String URL_NAME = "url";
 	
 	private static final String NUXEO_URL_NAME = "nuxeo_url";
+	
+	private static final String USER_NOT_FOUND = "User not found.";
 
     private String url = null;
     
@@ -86,19 +90,50 @@ public class GAPortalAuthenticator implements NuxeoAuthenticationPlugin {
             HttpServletResponse httpResponse) {
     	String mail = null;
     	String userName = null;
+    	String login = null;
+    	String firstName = null;
+    	String lastName = null;
     	if(httpRequest.getParameterValues("mail") != null && httpRequest.getParameterValues("mail").length>0){
-    		mail = httpRequest.getParameterValues("mail")[0];
+    		mail = httpRequest.getParameterValues("mail")[0];   		
+    		login = httpRequest.getParameterValues("tcGid")[0];
+    		javax.servlet.http.Cookie cookie = new Cookie("login", login);   	
+    		firstName = httpRequest.getParameterValues("givenName")[0];
+    		cookie.setPath("/");
+    		cookie.setMaxAge(60*60);
+    		cookie.setSecure(false);
+    		httpResponse.addCookie(cookie);
+    		logger.info("path ends with: "+ httpRequest.getRequestURI());
     	}
  
 	    logger.info("mail: "+mail);
+	    UserManager userManager=Framework.getService(UserManager.class);
     	if(mail != null){
-	        UserManager userManager=Framework.getService(UserManager.class);
 	        Map<String, Serializable> map = new HashMap();
 	        map.put("email", mail);
+	        
 	        DocumentModelList userList = userManager.searchUsers(map, null);
 	        if(userList != null && userList.size() > 0){
 	        	DocumentModel user = userList.get(0);
 	        	userName = (String) user.getPropertyValue("username");
+	        }else{
+	        	//create user in nuxeo	        	
+	        	DocumentModel userModel=userManager.getBareUserModel();
+	        	String schemaName=userManager.getUserSchemaName();
+	        	userModel.setProperty(schemaName,"username",login);
+	        	PasswordGenerator pg = new PasswordGenerator();
+	        	userModel.setProperty(schemaName,"password",pg.nextPassword());
+	        	userModel.setProperty(schemaName, "email", mail);
+	        	userModel.setProperty(schemaName, "firstName", firstName);
+	        	userModel.setProperty(schemaName, "lastName", lastName);
+	       
+	        	ArrayList<String> groups=new ArrayList<String>();
+	        	//if user is from portal add him to the partners
+	        	groups.add("partners");
+	        	//TODO else add him to the member list
+	        	//groups.add("members");
+	        	userModel.setProperty("user","groups",groups);
+	        	userModel=userManager.createUser(userModel);
+	        	userName = login;
 	        }
     	}
     	logger.info("userName: "+userName);
@@ -108,6 +143,9 @@ public class GAPortalAuthenticator implements NuxeoAuthenticationPlugin {
         	httpRequest.getSession().setAttribute("userName", userName);
             return new UserIdentificationInfo(userName, userName);
         } else {
+        	if(httpRequest.getParameterValues("mail") != null){
+        		httpRequest.getSession().setAttribute("flag", USER_NOT_FOUND);
+        	}
         	return null;
         }
     }
@@ -126,12 +164,31 @@ public class GAPortalAuthenticator implements NuxeoAuthenticationPlugin {
     		logger.error(e);
     	}
     	if(userName == null){
+    		try{
+        		String flag = (String)httpRequest.getSession().getAttribute("flag");
+        		if((USER_NOT_FOUND).equals(flag)){
+        			return false;
+        		}
+        	}catch(Exception e){
+        		logger.error(e);
+        	}
     		return true;
+    		
     	}
         return false;
     }
     
     public Boolean handleLogout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         return true;
+    }
+    
+    
+
+    private final class PasswordGenerator {
+      private SecureRandom random = new SecureRandom();
+
+      public String nextPassword() {
+        return new BigInteger(130, random).toString(32);
+      }
     }
 }
